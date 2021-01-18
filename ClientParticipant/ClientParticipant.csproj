@@ -6,4 +6,8 @@
         <RootNamespace>Participant</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\PollLibrary\PollLibrary.csproj" />
+    </ItemGroup>
+
 </Project>

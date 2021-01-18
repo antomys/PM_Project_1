@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using PollLibrary;
+using PollLibrary.Polls;
 
 namespace ClientParticipant
 {
@@ -6,7 +9,11 @@ namespace ClientParticipant
     {
         private static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var poll = new Poll();
+            //poll.NewPoll("test");
+            poll.GetPoll("test"); 
+            poll.ShowStatistics();
+            //poll.AddQuestions();
         }
     }
 }
