@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using PollLibrary.Exceptions;
 
-namespace PollLibrary
+namespace PollLibrary.AccountManaging
 {
     
     public class Account : IAccount
@@ -48,7 +48,7 @@ namespace PollLibrary
             else
             {
                 var data = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
-                if (data.Any(x=>x.Name.Equals(Name) && x.Password.Equals(Password)))
+                if (data!.Any(x=>x.Name.Equals(Name) && x.Password.Equals(Password)))
                 {
                     throw new AlreadyExistsException(ToString());
                 }
@@ -60,13 +60,14 @@ namespace PollLibrary
 
         public void DeleteAccountById(Guid guid)
         {
+            CreateOrCheckFile();
             var option = new JsonSerializerOptions
             {
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
             var accounts = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
-            accounts.RemoveAt(accounts.FindIndex(x => x.Id.Equals(guid)));
+            accounts?.RemoveAt(accounts.FindIndex(x => x.Id.Equals(guid)));
             var json = JsonSerializer.Serialize(accounts, option);
             File.WriteAllText(AccountBin,json);
 
@@ -81,8 +82,12 @@ namespace PollLibrary
 
         public static List<Account> GetAccounts()
         {
+            if (!File.Exists(AccountBin) || File.ReadAllText(AccountBin).Length==0) 
+            {
+                throw new NotFoundException(AccountBin);
+            }
             var deserialized = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
-            var accounts = deserialized.ToList();
+            var accounts = deserialized!.ToList();
             return accounts;
         }
 

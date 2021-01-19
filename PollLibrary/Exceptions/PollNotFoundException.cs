@@ -1,8 +1,13 @@
-﻿namespace PollLibrary.Exceptions
+﻿using System;
+
+namespace PollLibrary.Exceptions
 {
-    public class PollNotFoundException
+    public class PollNotFoundException : Exception
     {
-        public string Name { get; }
-        //Todo: this crap
+        public PollNotFoundException(string message) :
+            base($"Poll with index {message} is not found!!")
+        {
+            
+        }
     }
 }

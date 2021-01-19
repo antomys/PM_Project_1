@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PollLibrary
+namespace PollLibrary.AccountManaging
 {
     public enum Roles
     {

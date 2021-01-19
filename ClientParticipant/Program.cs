@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Linq;
-using PollLibrary;
+using PollLibrary.AccountManaging;
 using PollLibrary.Polls;
 
-namespace ClientParticipant
+namespace Participant
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
+        {
+            ChangeAccount();
+        }
+
+        private static void ChangeAccount()
         {
             var chosenAccount = Login();
             if (chosenAccount.Role.Equals(Roles.Participant))
@@ -53,13 +58,13 @@ namespace ClientParticipant
         private static Account SignUp()
         {
             string name, password;
-            int role = 0;
+            int role;
             do
             {
                 Console.Write("Please enter your Nick name: ");
-                name = Console.ReadLine().Trim();
+                name = Console.ReadLine()?.Trim();
                 Console.Write("Please enter your password: ");
-                password = Console.ReadLine().Trim();
+                password = Console.ReadLine()?.Trim();
             } while (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password));
             do
             {
@@ -105,14 +110,22 @@ namespace ClientParticipant
             do
             {
                 Console.Write("\nPlease enter Name: ");
-                input = Console.ReadLine().Trim();
+                input = Console.ReadLine()?.Trim();
                 Console.Write("\nPlease enter password: ");
                 password = Console.ReadLine();
             } while (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(password));
-            var allAccounts = Account.GetAccounts();
-            var result = allAccounts.FirstOrDefault(account =>
-                account.Name.ToLower().Equals(input) && account.Password.ToLower().Equals(password));
-            if (result != null) return result;
+
+            try
+            {
+                var allAccounts = Account.GetAccounts();
+                var result = allAccounts.FirstOrDefault(account =>
+                    account.Name.ToLower().Equals(input) && account.Password.ToLower().Equals(password));
+                if (result != null) return result;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception.Message);
+            }
             Console.WriteLine("\nPlease try again. This account is not found!\n");
             return null;
         }
@@ -121,15 +134,135 @@ namespace ClientParticipant
         {
             Console.WriteLine($"Hello,{account.Name}!");
             Console.WriteLine($"Your role is {account.Role}");
+            while (true)
+            {
+                Console.WriteLine("1. List Polls");
+                Console.WriteLine("2. Create New Poll");
+                Console.WriteLine("3. Add question to poll");
+                Console.WriteLine("4. Remove question from poll");
+                Console.WriteLine("5. Show statistics by poll");
+                Console.WriteLine("6. Change Account");
+                Console.WriteLine("7. Exit");
+                var polls = Poll.ListPolls();
+                Int32.TryParse(Console.ReadLine(), out var selected);
+                switch (selected)
+                {
+                    case 1:
+                        Console.WriteLine("\nList: ");
+                        Poll.PrintAllPolls(polls);
+                        Console.WriteLine('\n');
+                        break;
+                    case 2:
+                        Console.Write("Enter PollName: ");
+                        try
+                        {
+                            new Poll().NewPoll(Console.ReadLine()?.Trim());
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Console.WriteLine(exception.Message);
+                            continue;
+                        }
+                    case 3:
+                        if(!Poll.PrintAllPolls(polls))
+                            continue;
+                        Console.WriteLine('\n');
+                        Console.Write("\nPlease select poll : ");
+                        var input = Console.ReadLine()?.Trim();
+                        Int32.TryParse(input, out var pollId);
+                        try
+                        {
+                            var poll = Poll.GetPollById(polls,pollId);
+                            poll.AddQuestions();
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Console.WriteLine(exception.Message);
+                            continue;
+                        }
+                    case 4:
+                        if(!Poll.PrintAllPolls(polls))
+                            continue;
+                        Console.WriteLine('\n');
+                        Console.Write("\nPlease select poll : ");
+                        Int32.TryParse(Console.ReadLine(), out var plId);
+                        try
+                        {
+                            var poll = Poll.GetPollById(polls,plId);
+                            poll.DeleteQuestion();
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Console.WriteLine(exception.Message);
+                            continue;
+                        }
+                    //todo:Add features
+                    case 5:
+                        Console.WriteLine("\nList: ");
+                        if(!Poll.PrintAllPolls(polls))
+                            continue;
+                        Console.WriteLine('\n');
+                        Poll.SelectPollToStatistics(polls);
+                        break;
+                    case 6:
+                        ChangeAccount();
+                        break;
+                    case 7:
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        continue;
+                }
+            }
         }
-
         private static void ParticipantMenu(IAccount account)
         {
             Console.WriteLine($"Hello,{account.Name}!");
             Console.WriteLine($"Your role is {account.Role}");
-            Console.WriteLine("Menu:");
+            Console.WriteLine("\nMenu:");
             while (true)
             {
+                Console.WriteLine("1. List all available polls");
+                Console.WriteLine("2. Select poll from list");
+                Console.WriteLine("3. Change Account");
+                Console.WriteLine("4. Exit");
+                Int32.TryParse(Console.ReadLine(), out var selected);
+                var polls = Poll.ListPolls();
+                switch (selected)
+                    {
+                        case 1:
+                            Console.WriteLine("\nList: ");
+                            if(!Poll.PrintAllPolls(polls))
+                                continue;
+                            Console.WriteLine('\n');
+                            break;
+                        case 2:
+                            Console.WriteLine("\nList: ");
+                            if(!Poll.PrintAllPolls(polls))
+                                continue;
+                            Console.WriteLine('\n');
+                            try
+                            {
+                                Poll.SelectPollToTest(polls);
+                                break;
+                            }
+                            catch (Exception exception)
+                            {
+                                Console.WriteLine(exception.Message);
+                                continue;
+                            }
+                        case 3:
+                            ChangeAccount();
+                            break;
+                        case 4:
+                            Environment.Exit(0);
+                            break;
+                        default:
+                            continue;
+                    }
                 
             }
         }
