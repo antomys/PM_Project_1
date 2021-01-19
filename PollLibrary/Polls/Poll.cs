@@ -191,13 +191,21 @@ namespace PollLibrary.Polls
 
         public static void PrintAllPolls(Dictionary<int, Poll> polls)
         {
-            foreach (var (key, value) in polls)
+            if (polls == null || polls.Count==0)
             {
-                Console.WriteLine($"{key}. {value.PollName}");
+                Console.WriteLine("No polls found!");
+            }
+            else
+            {
+                foreach (var (key, value) in polls)
+                {
+                    Console.WriteLine($"{key}. {value.PollName}");
+                } 
             }
         }
         public static void SelectPollToTest(Dictionary<int,Poll> polls)
         {
+            if (polls == null || polls.Count==0) return;
             int input;
             do
             {            
@@ -206,9 +214,12 @@ namespace PollLibrary.Polls
             } while (input > polls.Values.Count || input < polls.Values.Count);
             Console.WriteLine('\n');
             new Poll().TestPoll(polls[input]);
+
+
         }
         public static void SelectPollToStatistics(Dictionary<int, Poll> polls)
         {
+            if (polls == null || polls.Count==0) return;
             int input;
             do
             {            

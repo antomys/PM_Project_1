@@ -60,6 +60,7 @@ namespace PollLibrary
 
         public void DeleteAccountById(Guid guid)
         {
+            CreateOrCheckFile();
             var option = new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -81,6 +82,10 @@ namespace PollLibrary
 
         public static List<Account> GetAccounts()
         {
+            if (!File.Exists(AccountBin) || File.ReadAllText(AccountBin).Length==0) 
+            {
+                throw new NotFoundException(AccountBin);
+            }
             var deserialized = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
             var accounts = deserialized.ToList();
             return accounts;

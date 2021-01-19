@@ -1,16 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading;
 using PollLibrary;
 using PollLibrary.Polls;
 
-namespace ClientParticipant
+namespace Participant
 {
     internal static class Program
     {
         private static void Main(string[] args)
+        {
+            ChangeAccount();
+        }
+
+        private static void ChangeAccount()
         {
             var chosenAccount = Login();
             if (chosenAccount.Role.Equals(Roles.Participant))
@@ -60,9 +62,9 @@ namespace ClientParticipant
             do
             {
                 Console.Write("Please enter your Nick name: ");
-                name = Console.ReadLine().Trim();
+                name = Console.ReadLine()?.Trim();
                 Console.Write("Please enter your password: ");
-                password = Console.ReadLine().Trim();
+                password = Console.ReadLine()?.Trim();
             } while (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(password));
             do
             {
@@ -108,14 +110,22 @@ namespace ClientParticipant
             do
             {
                 Console.Write("\nPlease enter Name: ");
-                input = Console.ReadLine().Trim();
+                input = Console.ReadLine()?.Trim();
                 Console.Write("\nPlease enter password: ");
                 password = Console.ReadLine();
             } while (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(password));
-            var allAccounts = Account.GetAccounts();
-            var result = allAccounts.FirstOrDefault(account =>
-                account.Name.ToLower().Equals(input) && account.Password.ToLower().Equals(password));
-            if (result != null) return result;
+
+            try
+            {
+                var allAccounts = Account.GetAccounts();
+                var result = allAccounts.FirstOrDefault(account =>
+                    account.Name.ToLower().Equals(input) && account.Password.ToLower().Equals(password));
+                if (result != null) return result;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception.Message);
+            }
             Console.WriteLine("\nPlease try again. This account is not found!\n");
             return null;
         }
@@ -131,9 +141,9 @@ namespace ClientParticipant
                 Console.WriteLine("3. Remove question from poll");
                 Console.WriteLine("4. Show statistics by poll");
                 Console.WriteLine("5. Change Account");
-                Console.WriteLine("0. Exit");
-                Int32.TryParse(Console.ReadLine(), out var selected);
+                Console.WriteLine("6. Exit");
                 var polls = Poll.ListPolls();
+                Int32.TryParse(Console.ReadLine(), out var selected);
                 switch (selected)
                 {
                     case 1:
@@ -161,10 +171,10 @@ namespace ClientParticipant
                         Poll.PrintAllPolls(polls);
                         Console.WriteLine('\n');
                         Console.Write("\nPlease select poll : ");
-                        Int32.TryParse(Console.ReadLine(), out var plID);
+                        Int32.TryParse(Console.ReadLine(), out var plId);
                         try
                         {
-                            var poll = new Poll().GetPollById(polls,plID);
+                            var poll = new Poll().GetPollById(polls,plId);
                             poll.DeleteQuestion();
                             break;
                         }
@@ -181,9 +191,9 @@ namespace ClientParticipant
                         Poll.SelectPollToStatistics(polls);
                         break;
                     case 5:
-                        Login();
+                        ChangeAccount();
                         break;
-                    case 0:
+                    case 6:
                         Environment.Exit(0);
                         break;
                     default:
@@ -201,7 +211,7 @@ namespace ClientParticipant
                 Console.WriteLine("1. List all available polls");
                 Console.WriteLine("2. Select poll from list");
                 Console.WriteLine("3. Change Account");
-                Console.WriteLine("0. Exit");
+                Console.WriteLine("4. Exit");
                 Int32.TryParse(Console.ReadLine(), out var selected);
                 var polls = Poll.ListPolls();
                 while (true)
@@ -220,9 +230,9 @@ namespace ClientParticipant
                             Poll.SelectPollToTest(polls);
                             break;
                         case 3:
-                            Login();
+                            ChangeAccount();
                             break;
-                        case 0:
+                        case 4:
                             Environment.Exit(0);
                             break;
                         default:
@@ -231,7 +241,5 @@ namespace ClientParticipant
                 }
             }
         }
-//todo:refactor that two redundant methods
-
     }
 }
