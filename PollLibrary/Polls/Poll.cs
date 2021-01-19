@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Microsoft.VisualBasic;
 using PollLibrary.Exceptions;
 
 namespace PollLibrary.Polls
@@ -12,7 +11,7 @@ namespace PollLibrary.Polls
     {
         private static readonly string WorkingDir = Directory.GetCurrentDirectory() + "/polls/";
 
-        public string PollName { get; set; }
+        public string PollName { get; set; } //without this JSON can not get values from file
         public int QuestionAmount { get; set; }
         public List<Question> Questions { get; set; }
         public Statistics Statistics { get; set; }
@@ -22,8 +21,15 @@ namespace PollLibrary.Polls
             Console.Write("Enter Question: ");
             var name = Console.ReadLine();
             var dictionaryOfAnswers = new Dictionary<char, string>();
-            Console.Write ("How many variants of answers? (if one - just write 1): ");
-            Int32.TryParse(Console.ReadLine(), out var amount);
+            Console.Write ("How many variants of answers? (if one - just write 1) or skip: ");
+            var input = Console.ReadLine();
+            int amount;
+            if (string.IsNullOrWhiteSpace(input))
+                amount = 1;
+            else
+            {
+                Int32.TryParse(input, out amount);
+            }
             if (amount == 1)
             {
                 dictionaryOfAnswers = null;
@@ -37,6 +43,8 @@ namespace PollLibrary.Polls
                                 Console.Write($"{key}. ");
                                 var value = Console.ReadLine()?.Trim();
                                 dictionaryOfAnswers.Add(key,value);
+                                if (string.IsNullOrWhiteSpace(value))
+                                    throw new InvalidNameException(value);
                                 key++;
                             }
             }
@@ -48,7 +56,7 @@ namespace PollLibrary.Polls
                 do
                 {
                     Console.Write("Please number of right answer: ");
-                    answer = Convert.ToChar(Console.ReadLine().Trim());
+                    answer = Convert.ToChar(Console.ReadLine()?.Trim()!);
                     rightAnswer = answer.ToString();
                 } while (!dictionaryOfAnswers.Keys.Any(x => x.Equals(answer)));
                 
@@ -58,6 +66,8 @@ namespace PollLibrary.Polls
                 Console.Write("Please enter right answer: ");
                 rightAnswer = Console.ReadLine();
             }
+            if (string.IsNullOrWhiteSpace(name)|| string.IsNullOrWhiteSpace(rightAnswer))
+                throw new InvalidNameException(name);
             UpdateBin(new Question(name, dictionaryOfAnswers, rightAnswer), this);
             
         }
@@ -87,21 +97,13 @@ namespace PollLibrary.Polls
             Console.WriteLine("Success!\n");
             File.WriteAllText(WorkingDir+PollName+".bin",serialize);
         }
-
-        /*public void ShowStatistics()
-        {
-            var deserializeFile = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName)); //todo:remove
-            Console.WriteLine(deserializeFile.Statistics.ToString());
-        }*/
         private static void ShowStatistics(IPoll poll)
         {
-            //var deserializeFile = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName));
             Console.WriteLine(poll.Statistics.ToString());
         }
 
         private void UpdateBin(Question question, IPoll poll)
         {
-            //var deserializeFile = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName));
             if (poll.Questions == null)
             {
                 Questions = new List<Question> {question};
@@ -118,9 +120,10 @@ namespace PollLibrary.Polls
 
         public void NewPoll(string fileName)
         {
+            if (string.IsNullOrWhiteSpace(fileName) || File.Exists(WorkingDir+fileName+".bin"))
+                throw new InvalidNameException(fileName);
             Questions = new List<Question>();
             Statistics = new Statistics();
-            //_fileName = fileName + ".bin";
             PollName = fileName;
             if (!Directory.Exists(WorkingDir))
             {
@@ -134,20 +137,23 @@ namespace PollLibrary.Polls
             File.WriteAllText(WorkingDir+PollName+".bin",serialize);
         }
 
-        public Poll GetPollById(Dictionary<int,Poll> polls, int input)
+        public static Poll GetPollById(Dictionary<int,Poll> polls, int input)
         {
-            if (input > polls.Values.Count || input < polls.Values.Count || polls==null)
+            if (input > polls.Values.Count || input < 0 || polls==null)
             {
                 throw new PollNotFoundException(input.ToString());
             }
             return polls[input];
         }
 
-        public void TestPoll()
+        private void TestPoll()
         {
-            //var deserialize = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName));
             var questionNumber = 1;
             var rightAnswers = 0;
+            if (QuestionAmount == 0)
+            {
+                throw new EmptyPollException(PollName);
+            }
             foreach (var question in Questions)
             {
                 Console.WriteLine(questionNumber + ". " + question.Name);
@@ -189,13 +195,12 @@ namespace PollLibrary.Polls
         }
         public static Dictionary<int,Poll> ListPolls()
         {
+            if (!Directory.Exists(WorkingDir))
+                Directory.CreateDirectory(WorkingDir);
             var pollList = new Dictionary<int, Poll>();
             foreach (var pollFile in Directory.GetFiles(WorkingDir))
             {
-                if (File.ReadAllText(pollFile).Length == 0)
-                {
-                    return null;
-                }
+                if (File.ReadAllText(pollFile).Length == 0) continue;
                 var json = JsonSerializer.Deserialize<Poll>(File.ReadAllText(pollFile));
                 pollList.Add(pollList.Count+1,json);
             }
@@ -227,7 +232,7 @@ namespace PollLibrary.Polls
             {            
                 Console.Write("Please select poll to test: ");
                 Int32.TryParse(Console.ReadLine(), out input);
-            } while (input > polls.Values.Count || input < polls.Values.Count);
+            } while (input > polls.Values.Count || input < 0);
             Console.WriteLine('\n');
             polls[input].TestPoll();
 
@@ -241,7 +246,7 @@ namespace PollLibrary.Polls
             {            
                 Console.Write("Please select poll to see stats: ");
                 Int32.TryParse(Console.ReadLine(), out input);
-            } while (input > polls.Values.Count || input < polls.Values.Count);
+            } while (input > polls.Values.Count || input < 0);
 
             Console.WriteLine('\n');
             ShowStatistics(polls[input]);

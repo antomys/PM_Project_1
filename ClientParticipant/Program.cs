@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using PollLibrary;
+using PollLibrary.AccountManaging;
 using PollLibrary.Polls;
 
 namespace Participant
@@ -154,17 +154,26 @@ namespace Participant
                         break;
                     case 2:
                         Console.Write("Enter PollName: ");
-                        new Poll().NewPoll(Console.ReadLine()?.Trim());
-                        break;
+                        try
+                        {
+                            new Poll().NewPoll(Console.ReadLine()?.Trim());
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Console.WriteLine(exception.Message);
+                            continue;
+                        }
                     case 3:
                         if(!Poll.PrintAllPolls(polls))
                             continue;
                         Console.WriteLine('\n');
                         Console.Write("\nPlease select poll : ");
-                        Int32.TryParse(Console.ReadLine(), out var pollId);
+                        var input = Console.ReadLine()?.Trim();
+                        Int32.TryParse(input, out var pollId);
                         try
                         {
-                            var poll = new Poll().GetPollById(polls,pollId);
+                            var poll = Poll.GetPollById(polls,pollId);
                             poll.AddQuestions();
                             break;
                         }
@@ -181,7 +190,7 @@ namespace Participant
                         Int32.TryParse(Console.ReadLine(), out var plId);
                         try
                         {
-                            var poll = new Poll().GetPollById(polls,plId);
+                            var poll = Poll.GetPollById(polls,plId);
                             poll.DeleteQuestion();
                             break;
                         }
@@ -235,8 +244,16 @@ namespace Participant
                             if(!Poll.PrintAllPolls(polls))
                                 continue;
                             Console.WriteLine('\n');
-                            Poll.SelectPollToTest(polls);
-                            break;
+                            try
+                            {
+                                Poll.SelectPollToTest(polls);
+                                break;
+                            }
+                            catch (Exception exception)
+                            {
+                                Console.WriteLine(exception.Message);
+                                continue;
+                            }
                         case 3:
                             ChangeAccount();
                             break;
