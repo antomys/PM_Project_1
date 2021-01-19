@@ -38,7 +38,7 @@ namespace PollLibrary
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-            IsExist();
+            CreateOrCheckFile();
             if (File.ReadAllText(AccountBin).Length == 0)
             {
                 var list = new List<IAccount> {this};
@@ -48,6 +48,10 @@ namespace PollLibrary
             else
             {
                 var data = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
+                if (data.Any(x=>x.Name.Equals(Name) && x.Password.Equals(Password)))
+                {
+                    throw new AlreadyExistsException(ToString());
+                }
                 data.Add(this);
                 var json = JsonSerializer.Serialize(data,option);
                 File.WriteAllText(AccountBin,json);
@@ -67,7 +71,7 @@ namespace PollLibrary
             File.WriteAllText(AccountBin,json);
 
         }
-        private static void IsExist()
+        private static void CreateOrCheckFile()
         {
             if (File.Exists(AccountBin)) return;
             Console.WriteLine("File Account.bin not found. Creating...");
@@ -75,5 +79,18 @@ namespace PollLibrary
             fs.Close();
         }
 
+        public static List<Account> GetAccounts()
+        {
+            var deserialized = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
+            var accounts = deserialized.ToList();
+            return accounts;
+        }
+
+        public override string ToString()
+        {
+            return $"ID: {Id}\n" +
+                   $"Name: {Name}\n" +
+                   $"Role: {Role}";
+        }
     }
 }

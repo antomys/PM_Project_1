@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Text.Json;
+using PollLibrary.Exceptions;
 
 namespace PollLibrary.Polls
 {
@@ -22,15 +21,21 @@ namespace PollLibrary.Polls
             var dictionaryOfAnswers = new Dictionary<char, string>();
             Console.WriteLine("How many variants of answers?");
             Int32.TryParse(Console.ReadLine(), out var amount);
-            Console.WriteLine("Enter each variant of answer like: {1. answer} ");
-            for (var i = 0; i < amount; i++)
+            if (amount == 1)
             {
-                var input = Console.ReadLine();
-                var key = Convert.ToChar(input[0]);
-                var value = input.Substring(2, input.Length - 2).Trim();
-                dictionaryOfAnswers.Add(key,value);
+                dictionaryOfAnswers = null;
             }
-
+            else
+            {
+                Console.WriteLine("Enter each variant of answer like: {1. answer} ");
+                            for (var i = 0; i < amount; i++)
+                            {
+                                var input = Console.ReadLine();
+                                var key = Convert.ToChar(input[0]);
+                                var value = input.Substring(2, input.Length - 2).Trim();
+                                dictionaryOfAnswers.Add(key,value);
+                            }
+            }
             Console.WriteLine("Please enter right answer: ");
             var rightAnswer = Console.ReadLine();
             UpdateBin(new Question(name, dictionaryOfAnswers, rightAnswer));
@@ -68,7 +73,6 @@ namespace PollLibrary.Polls
                 Questions = deserializeFile.Questions;
                 Questions.Add(question);
             }
-
             QuestionAmount = Questions.Count;
             var serialize = JsonSerializer.Serialize(this);
             File.WriteAllText(_workingDir+_fileName,serialize);
@@ -94,7 +98,47 @@ namespace PollLibrary.Polls
         public void GetPoll(string fileName)
         {
             _fileName = fileName + ".bin";
+            if (!File.Exists(_workingDir+_fileName))
+            {
+                throw new NotFoundException(_fileName);
+            }
+            //
+        }
+
+        public void TestPoll()
+        {
             var deserialize = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName));
+            var questionNumber = 1;
+            var rightAnswers = 0;
+            foreach (var question in deserialize.Questions)
+            {
+                Console.WriteLine(questionNumber + ". " + question.Name);
+                if (question.MultipleQuestion != null)
+                {
+                    foreach (var (key, value) in question.MultipleQuestion)
+                    {
+                        Console.WriteLine("\t"+key+". " + value);
+                    }
+                }
+                questionNumber++;
+                Console.Write("Your Answer: ");
+                var input = Console.ReadLine()?.Trim();
+                if (input.Equals(question.RightAnswer))
+                {
+                    rightAnswers++;
+                    Console.WriteLine($"Answer {input} is right!\n");
+                }
+                else
+                {
+                    Console.WriteLine($"Right answer is {question.RightAnswer}\n");
+                }
+            }
+            deserialize.Statistics.Tries ++;
+            deserialize.Statistics.AverageRight =
+                (deserialize.Statistics.AverageRight + rightAnswers) / deserialize.Statistics.Tries;
+            var serialize = JsonSerializer.Serialize(deserialize);
+            File.WriteAllText(_workingDir+_fileName,serialize);
+            Console.WriteLine($"Your answered on {rightAnswers} questions right.\nThis test was passed {deserialize.Statistics.Tries} times\nAverage right answers:{deserialize.Statistics.AverageRight}");
         }
     }
 }
