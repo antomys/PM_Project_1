@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Text.Json;
+using Microsoft.VisualBasic;
 using PollLibrary.Exceptions;
 
 namespace PollLibrary.Polls
 {
     public class Poll : IPoll
     {
-        private static readonly string _workingDir = Directory.GetCurrentDirectory() + "/polls/";
+        private static readonly string WorkingDir = Directory.GetCurrentDirectory() + "/polls/";
 
         public string PollName { get; set; }
         public int QuestionAmount { get; set; }
@@ -19,10 +19,10 @@ namespace PollLibrary.Polls
         
         public void AddQuestions()
         {
-            Console.WriteLine("Enter Question:");
+            Console.Write("Enter Question: ");
             var name = Console.ReadLine();
             var dictionaryOfAnswers = new Dictionary<char, string>();
-            Console.WriteLine("How many variants of answers? (if one - just write 1)");
+            Console.Write ("How many variants of answers? (if one - just write 1): ");
             Int32.TryParse(Console.ReadLine(), out var amount);
             if (amount == 1)
             {
@@ -30,13 +30,14 @@ namespace PollLibrary.Polls
             }
             else
             {
-                Console.WriteLine("Enter each variant of answer like: {1. answer} ");
+                var key = '1';
+                Console.WriteLine("Enter each variant of answer like: answer. Numbers will be automatically added");
                             for (var i = 0; i < amount; i++)
                             {
-                                var input = Console.ReadLine();
-                                var key = Convert.ToChar(input[0]); //todo:refactoring
-                                var value = input.Substring(2, input.Length - 2).Trim();
+                                Console.Write($"{key}. ");
+                                var value = Console.ReadLine()?.Trim();
                                 dictionaryOfAnswers.Add(key,value);
+                                key++;
                             }
             }
 
@@ -46,14 +47,15 @@ namespace PollLibrary.Polls
             {
                 do
                 {
-                    Console.WriteLine("Please enter right answer: ");
+                    Console.Write("Please number of right answer: ");
                     answer = Convert.ToChar(Console.ReadLine().Trim());
                     rightAnswer = answer.ToString();
                 } while (!dictionaryOfAnswers.Keys.Any(x => x.Equals(answer)));
+                
             }
             else
             {
-                Console.WriteLine("Please enter right answer: ");
+                Console.Write("Please enter right answer: ");
                 rightAnswer = Console.ReadLine();
             }
             UpdateBin(new Question(name, dictionaryOfAnswers, rightAnswer), this);
@@ -83,7 +85,7 @@ namespace PollLibrary.Polls
 
             var serialize = JsonSerializer.Serialize(this);
             Console.WriteLine("Success!\n");
-            File.WriteAllText(_workingDir+PollName+".bin",serialize);
+            File.WriteAllText(WorkingDir+PollName+".bin",serialize);
         }
 
         /*public void ShowStatistics()
@@ -91,7 +93,7 @@ namespace PollLibrary.Polls
             var deserializeFile = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName)); //todo:remove
             Console.WriteLine(deserializeFile.Statistics.ToString());
         }*/
-        public void ShowStatistics(Poll poll)
+        private static void ShowStatistics(IPoll poll)
         {
             //var deserializeFile = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName));
             Console.WriteLine(poll.Statistics.ToString());
@@ -111,7 +113,7 @@ namespace PollLibrary.Polls
             }
             QuestionAmount = Questions.Count;
             var serialize = JsonSerializer.Serialize(this);
-            File.WriteAllText(_workingDir+poll.PollName+".bin",serialize);
+            File.WriteAllText(WorkingDir+poll.PollName+".bin",serialize);
         }
 
         public void NewPoll(string fileName)
@@ -120,35 +122,33 @@ namespace PollLibrary.Polls
             Statistics = new Statistics();
             //_fileName = fileName + ".bin";
             PollName = fileName;
-            if (!Directory.Exists(_workingDir))
+            if (!Directory.Exists(WorkingDir))
             {
-                Directory.CreateDirectory(_workingDir);
-                using var fs = File.Create(_workingDir+PollName+".bin");
+                Directory.CreateDirectory(WorkingDir);
+                using var fs = File.Create(WorkingDir+PollName+".bin");
                 fs.Close();
             }
-            if(File.Exists(_workingDir+PollName+".bin"))
+            if(File.Exists(WorkingDir+PollName+".bin"))
                 return;
             var serialize = JsonSerializer.Serialize(this);
-            File.WriteAllText(_workingDir+PollName+".bin",serialize);
+            File.WriteAllText(WorkingDir+PollName+".bin",serialize);
         }
 
         public Poll GetPollById(Dictionary<int,Poll> polls, int input)
         {
-            if (input > polls.Values.Count || input < polls.Values.Count)
+            if (input > polls.Values.Count || input < polls.Values.Count || polls==null)
             {
                 throw new PollNotFoundException(input.ToString());
             }
             return polls[input];
-            Console.WriteLine('\n');
-            //Not used!
         }
 
-        public void TestPoll(Poll poll)
+        public void TestPoll()
         {
             //var deserialize = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + _fileName));
             var questionNumber = 1;
             var rightAnswers = 0;
-            foreach (var question in poll.Questions)
+            foreach (var question in Questions)
             {
                 Console.WriteLine(questionNumber + ". " + question.Name);
                 if (question.MultipleQuestion != null)
@@ -171,36 +171,52 @@ namespace PollLibrary.Polls
                     Console.WriteLine($"Right answer is {question.RightAnswer}\n");
                 }
             }
-            poll.Statistics.Tries ++;
-            poll.Statistics.AverageRight =
-                (poll.Statistics.AverageRight + rightAnswers) / poll.Statistics.Tries;
-            var serialize = JsonSerializer.Serialize(poll);
-            File.WriteAllText(_workingDir+poll.PollName+".bin",serialize);
-            Console.WriteLine($"Your answered on {rightAnswers} questions right.\nThis test was passed {poll.Statistics.Tries} times\nAverage right answers:{poll.Statistics.AverageRight}");
+            Statistics.Tries ++;
+            if (Statistics.AverageRight == 0)
+            {
+                Statistics.AverageRight = rightAnswers / questionNumber * 100;
+            }
+            else
+            {
+                var thisAverage = rightAnswers / questionNumber * 100;
+                Statistics.AverageRight =
+                    (Statistics.AverageRight + thisAverage) / 2;
+            }
+            
+            var serialize = JsonSerializer.Serialize(this);
+            File.WriteAllText(WorkingDir+PollName+".bin",serialize);
+            Console.WriteLine($"Your answered on {rightAnswers} questions right.\nThis test was passed {Statistics.Tries} times\nAverage right answers:{Statistics.AverageRight}%");
         }
         public static Dictionary<int,Poll> ListPolls()
         {
             var pollList = new Dictionary<int, Poll>();
-            foreach (var pollFile in Directory.GetFiles(_workingDir))
+            foreach (var pollFile in Directory.GetFiles(WorkingDir))
             {
+                if (File.ReadAllText(pollFile).Length == 0)
+                {
+                    return null;
+                }
                 var json = JsonSerializer.Deserialize<Poll>(File.ReadAllText(pollFile));
                 pollList.Add(pollList.Count+1,json);
             }
             return pollList;
         }
 
-        public static void PrintAllPolls(Dictionary<int, Poll> polls)
+        public static bool PrintAllPolls(Dictionary<int, Poll> polls)
         {
             if (polls == null || polls.Count==0)
             {
-                Console.WriteLine("No polls found!");
+                Console.WriteLine("\tNo polls found!");
+                return false;
             }
             else
             {
                 foreach (var (key, value) in polls)
                 {
-                    Console.WriteLine($"{key}. {value.PollName}");
-                } 
+                    Console.WriteLine($"\t{key}. {value.PollName}");
+                }
+
+                return true;
             }
         }
         public static void SelectPollToTest(Dictionary<int,Poll> polls)
@@ -213,7 +229,7 @@ namespace PollLibrary.Polls
                 Int32.TryParse(Console.ReadLine(), out input);
             } while (input > polls.Values.Count || input < polls.Values.Count);
             Console.WriteLine('\n');
-            new Poll().TestPoll(polls[input]);
+            polls[input].TestPoll();
 
 
         }
@@ -228,7 +244,7 @@ namespace PollLibrary.Polls
             } while (input > polls.Values.Count || input < polls.Values.Count);
 
             Console.WriteLine('\n');
-            new Poll().ShowStatistics(polls[input]);
+            ShowStatistics(polls[input]);
         }
     }
 }

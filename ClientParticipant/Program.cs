@@ -7,7 +7,7 @@ namespace Participant
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             ChangeAccount();
         }
@@ -137,11 +137,12 @@ namespace Participant
             while (true)
             {
                 Console.WriteLine("1. List Polls");
-                Console.WriteLine("2. Add question to poll");
-                Console.WriteLine("3. Remove question from poll");
-                Console.WriteLine("4. Show statistics by poll");
-                Console.WriteLine("5. Change Account");
-                Console.WriteLine("6. Exit");
+                Console.WriteLine("2. Create New Poll");
+                Console.WriteLine("3. Add question to poll");
+                Console.WriteLine("4. Remove question from poll");
+                Console.WriteLine("5. Show statistics by poll");
+                Console.WriteLine("6. Change Account");
+                Console.WriteLine("7. Exit");
                 var polls = Poll.ListPolls();
                 Int32.TryParse(Console.ReadLine(), out var selected);
                 switch (selected)
@@ -152,7 +153,12 @@ namespace Participant
                         Console.WriteLine('\n');
                         break;
                     case 2:
-                        Poll.PrintAllPolls(polls);
+                        Console.Write("Enter PollName: ");
+                        new Poll().NewPoll(Console.ReadLine()?.Trim());
+                        break;
+                    case 3:
+                        if(!Poll.PrintAllPolls(polls))
+                            continue;
                         Console.WriteLine('\n');
                         Console.Write("\nPlease select poll : ");
                         Int32.TryParse(Console.ReadLine(), out var pollId);
@@ -167,8 +173,9 @@ namespace Participant
                             Console.WriteLine(exception.Message);
                             continue;
                         }
-                    case 3:
-                        Poll.PrintAllPolls(polls);
+                    case 4:
+                        if(!Poll.PrintAllPolls(polls))
+                            continue;
                         Console.WriteLine('\n');
                         Console.Write("\nPlease select poll : ");
                         Int32.TryParse(Console.ReadLine(), out var plId);
@@ -184,16 +191,17 @@ namespace Participant
                             continue;
                         }
                     //todo:Add features
-                    case 4:
+                    case 5:
                         Console.WriteLine("\nList: ");
-                        Poll.PrintAllPolls(polls);
+                        if(!Poll.PrintAllPolls(polls))
+                            continue;
                         Console.WriteLine('\n');
                         Poll.SelectPollToStatistics(polls);
                         break;
-                    case 5:
+                    case 6:
                         ChangeAccount();
                         break;
-                    case 6:
+                    case 7:
                         Environment.Exit(0);
                         break;
                     default:
@@ -214,18 +222,18 @@ namespace Participant
                 Console.WriteLine("4. Exit");
                 Int32.TryParse(Console.ReadLine(), out var selected);
                 var polls = Poll.ListPolls();
-                while (true)
-                {
-                    switch (selected)
+                switch (selected)
                     {
                         case 1:
                             Console.WriteLine("\nList: ");
-                            Poll.PrintAllPolls(polls);
+                            if(!Poll.PrintAllPolls(polls))
+                                continue;
                             Console.WriteLine('\n');
                             break;
                         case 2:
                             Console.WriteLine("\nList: ");
-                            Poll.PrintAllPolls(polls);
+                            if(!Poll.PrintAllPolls(polls))
+                                continue;
                             Console.WriteLine('\n');
                             Poll.SelectPollToTest(polls);
                             break;
@@ -238,7 +246,7 @@ namespace Participant
                         default:
                             continue;
                     }
-                }
+                
             }
         }
     }
