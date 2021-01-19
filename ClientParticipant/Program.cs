@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using PollLibrary;
 using PollLibrary.Polls;
 
@@ -53,7 +55,7 @@ namespace ClientParticipant
         private static Account SignUp()
         {
             string name, password;
-            int role = 0;
+            int role;
             do
             {
                 Console.Write("Please enter your Nick name: ");
@@ -121,17 +123,91 @@ namespace ClientParticipant
         {
             Console.WriteLine($"Hello,{account.Name}!");
             Console.WriteLine($"Your role is {account.Role}");
+            Int32.TryParse(Console.ReadLine(), out var selected);
+            Console.WriteLine("1. List Polls");
+            Console.WriteLine("2. Add question to poll");
+            Console.WriteLine("3. Remove question from poll");
+            Console.WriteLine("4. Show statistics by poll");
+            Console.WriteLine("0. Exit");
+            var polls = Poll.ListPolls();
+            switch (selected)
+            {
+                case 1:
+                    Console.WriteLine("\nList: ");
+                    Poll.PrintAllPolls(polls);
+                    Console.WriteLine('\n');
+                    break;
+                case 2:
+                    Poll.PrintAllPolls(polls);
+                    Console.WriteLine('\n');
+                    break;
+                //todo:Add features
+                case 3:
+                    Console.WriteLine("\nList: ");
+                    Poll.PrintAllPolls(polls);
+                    Console.WriteLine('\n');
+                    SelectPollToStatistics(polls);
+                    break;
+            }
         }
 
         private static void ParticipantMenu(IAccount account)
         {
             Console.WriteLine($"Hello,{account.Name}!");
             Console.WriteLine($"Your role is {account.Role}");
-            Console.WriteLine("Menu:");
+            Console.WriteLine("\nMenu:");
             while (true)
             {
-                
+                Console.WriteLine("1. List all available polls");
+                Console.WriteLine("2. Select poll from list");
+                Console.WriteLine("0. Exit");
+                Int32.TryParse(Console.ReadLine(), out var selected);
+                var polls = Poll.ListPolls();
+                switch (selected)
+                {
+                    case 1:
+                        Console.WriteLine("\nList: ");
+                        Poll.PrintAllPolls(polls);
+                        Console.WriteLine('\n');
+                        break;
+                    case 2:
+                        Console.WriteLine("\nList: ");
+                        Poll.PrintAllPolls(polls);
+                        Console.WriteLine('\n');
+                        SelectPollToTest(polls);
+                        break;
+                    case 0:
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        continue;
+                }
             }
+        }
+
+        private static void SelectPollToTest(Dictionary<int,Poll> polls)
+        {
+            int input;
+            do
+            {            
+                Console.Write("Please select poll to test: ");
+                Int32.TryParse(Console.ReadLine(), out input);
+            } while (input > polls.Values.Count || input < polls.Values.Count);
+            Console.WriteLine('\n');
+            new Poll().TestPoll(polls[input]);
+        }
+
+        private static void SelectPollToStatistics(Dictionary<int, Poll> polls)
+        {
+            int input;
+            do
+            {            
+                Console.Write("Please select poll to see stats: ");
+                Int32.TryParse(Console.ReadLine(), out input);
+            } while (input > polls.Values.Count || input < polls.Values.Count);
+
+            Console.WriteLine('\n');
+            new Poll().ShowStatistics(polls[input]);
         }
     }
 }
