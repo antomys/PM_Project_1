@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.WebSockets;
 using System.Text.Json;
 using PollLibrary.Exceptions;
 
@@ -15,12 +17,12 @@ namespace PollLibrary.Polls
         public List<Question> Questions { get; set; }
         public Statistics Statistics { get; set; }
         
-        public void AddQuestions(Poll poll)
+        public void AddQuestions()
         {
             Console.WriteLine("Enter Question:");
             var name = Console.ReadLine();
             var dictionaryOfAnswers = new Dictionary<char, string>();
-            Console.WriteLine("How many variants of answers? (if one - just write 1");
+            Console.WriteLine("How many variants of answers? (if one - just write 1)");
             Int32.TryParse(Console.ReadLine(), out var amount);
             if (amount == 1)
             {
@@ -37,23 +39,51 @@ namespace PollLibrary.Polls
                                 dictionaryOfAnswers.Add(key,value);
                             }
             }
-            Console.WriteLine("Please enter right answer: ");
-            var rightAnswer = Console.ReadLine();
-            UpdateBin(new Question(name, dictionaryOfAnswers, rightAnswer), poll);
+
+            string rightAnswer;
+            char answer;
+            if (dictionaryOfAnswers != null)
+            {
+                do
+                {
+                    Console.WriteLine("Please enter right answer: ");
+                    answer = Convert.ToChar(Console.ReadLine().Trim());
+                    rightAnswer = answer.ToString();
+                } while (!dictionaryOfAnswers.Keys.Any(x => x.Equals(answer)));
+            }
+            else
+            {
+                Console.WriteLine("Please enter right answer: ");
+                rightAnswer = Console.ReadLine();
+            }
+            UpdateBin(new Question(name, dictionaryOfAnswers, rightAnswer), this);
+            
         }
 
-        public void DeleteQuestion(int questionId, Poll poll)
+        public void DeleteQuestion()
         {
-            var deserializeFile = JsonSerializer.Deserialize<Poll>(File.ReadAllText(_workingDir + poll.PollName+".bin"));
-            if (deserializeFile?.Questions != null)
+            Console.WriteLine('\n');
+            for (var i = 0; i < Questions.Count; i++)
             {
-                var toDelete = deserializeFile.Questions[questionId];
-                deserializeFile.Questions.Remove(toDelete);
-                deserializeFile.QuestionAmount = deserializeFile.Questions.Count;
+                Console.WriteLine($"{i+1}. {Questions[i]}");
+            }
+            int questionId;
+            do
+            {
+                Console.Write("Please enter Question index to delete: ");
+                Int32.TryParse(Console.ReadLine(), out questionId);
+                questionId -= 1;
+            } while (questionId < 0 || questionId > Questions.Count);
+            if (Questions != null)
+            {
+                var toDelete = Questions[questionId];
+                Questions.Remove(toDelete);
+                QuestionAmount = Questions.Count;
             }
 
-            var serialize = JsonSerializer.Serialize(deserializeFile);
-            File.WriteAllText(_workingDir+poll.PollName+".bin",serialize);
+            var serialize = JsonSerializer.Serialize(this);
+            Console.WriteLine("Success!\n");
+            File.WriteAllText(_workingDir+PollName+".bin",serialize);
         }
 
         /*public void ShowStatistics()
@@ -102,13 +132,14 @@ namespace PollLibrary.Polls
             File.WriteAllText(_workingDir+PollName+".bin",serialize);
         }
 
-        public void GetPoll(string fileName)
+        public Poll GetPollById(Dictionary<int,Poll> polls, int input)
         {
-            fileName += ".bin";
-            if (!File.Exists(_workingDir+fileName))
+            if (input > polls.Values.Count || input < polls.Values.Count)
             {
-                throw new NotFoundException(fileName);
+                throw new PollNotFoundException(input.ToString());
             }
+            return polls[input];
+            Console.WriteLine('\n');
             //Not used!
         }
 
@@ -164,6 +195,29 @@ namespace PollLibrary.Polls
             {
                 Console.WriteLine($"{key}. {value.PollName}");
             }
+        }
+        public static void SelectPollToTest(Dictionary<int,Poll> polls)
+        {
+            int input;
+            do
+            {            
+                Console.Write("Please select poll to test: ");
+                Int32.TryParse(Console.ReadLine(), out input);
+            } while (input > polls.Values.Count || input < polls.Values.Count);
+            Console.WriteLine('\n');
+            new Poll().TestPoll(polls[input]);
+        }
+        public static void SelectPollToStatistics(Dictionary<int, Poll> polls)
+        {
+            int input;
+            do
+            {            
+                Console.Write("Please select poll to see stats: ");
+                Int32.TryParse(Console.ReadLine(), out input);
+            } while (input > polls.Values.Count || input < polls.Values.Count);
+
+            Console.WriteLine('\n');
+            new Poll().ShowStatistics(polls[input]);
         }
     }
 }
