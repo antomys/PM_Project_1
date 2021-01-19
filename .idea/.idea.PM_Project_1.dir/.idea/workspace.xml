@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d1855731-dfe9-40d0-adde-ca42064e3cb3" name="Default Changelist" comment="" />
+    <list default="true" id="d1855731-dfe9-40d0-adde-ca42064e3cb3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/ClientManager/Program.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ClientParticipant/ClientParticipant.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.PM_Project_1.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.PM_Project_1.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Manager/Manager.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/ClientManager/ClientManager.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Manager/Program.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PM_Project_1.sln" beforeDir="false" afterPath="$PROJECT_DIR$/PM_Project_1.sln" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,13 +38,15 @@
       <option name="presentableId" value="Default" />
       <updated>1610706737302</updated>
       <workItem from="1610706748776" duration="281000" />
+      <workItem from="1610827570383" duration="87000" />
+      <workItem from="1610829866107" duration="43000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="UnityProjectConfiguration" hasMinimizedUI="null" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -49,6 +58,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
