@@ -164,29 +164,28 @@ namespace PollLibrary.Polls
                         Console.WriteLine("\t"+key+". " + value);
                     }
                 }
-                questionNumber++;
+                //questionNumber++;
                 Console.Write("Your Answer: ");
                 var input = Console.ReadLine()?.Trim();
-                if (input != null && input.Equals(question.RightAnswer))
+                if (input != null && (input.Equals(question.RightAnswer)))
                 {
                     rightAnswers++;
-                    Console.WriteLine($"Answer {input} is right!\n");
+                    Console.WriteLine($"Answer {input}. {question.MultipleQuestion?[Convert.ToChar(input!)]} is right!\n");
                 }
                 else
                 {
-                    Console.WriteLine($"Right answer is {question.RightAnswer}\n");
+                    Console.WriteLine($"Right answer is {question.RightAnswer}. {question.MultipleQuestion?[Convert.ToChar(input!)]}\n");
                 }
             }
             Statistics.Tries ++;
+            var thisAverage = Convert.ToDouble(rightAnswers) / Convert.ToDouble(Questions.Count) * 100.0;
             if (Statistics.AverageRight == 0)
             {
-                Statistics.AverageRight = rightAnswers / questionNumber * 100;
+                Statistics.AverageRight = (decimal)thisAverage;
             }
             else
             {
-                var thisAverage = rightAnswers / questionNumber * 100;
-                Statistics.AverageRight =
-                    (Statistics.AverageRight + thisAverage) / 2;
+                Statistics.AverageRight = (Statistics.AverageRight + (decimal)thisAverage) / (decimal)2.0;
             }
             
             var serialize = JsonSerializer.Serialize(this);

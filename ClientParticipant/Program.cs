@@ -226,7 +226,7 @@ namespace Participant
             while (true)
             {
                 Console.WriteLine("1. List all available polls");
-                Console.WriteLine("2. Select poll from list");
+                Console.WriteLine("2. Select poll from list to test");
                 Console.WriteLine("3. Change Account");
                 Console.WriteLine("4. Exit");
                 Int32.TryParse(Console.ReadLine(), out var selected);

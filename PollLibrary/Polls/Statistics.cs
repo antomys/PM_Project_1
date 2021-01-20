@@ -7,7 +7,7 @@ namespace PollLibrary.Polls
         [JsonPropertyName("tries")]
         public int Tries { get; set; }
         [JsonPropertyName("averageright")]
-        public int AverageRight { get; set; }
+        public decimal AverageRight { get; set; }
 
         public override string ToString()
         {
