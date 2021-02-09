@@ -2,7 +2,7 @@
 
 namespace PollLibrary.AccountManaging
 {
-    public enum Roles
+    public enum Role
     {
         Manager,
         Participant
@@ -13,7 +13,7 @@ namespace PollLibrary.AccountManaging
         Guid Id { get;  }
         string Name { get; }
         string Password { get; }
-        Roles Role { get; }
+        Role Role { get; }
         
         
     }

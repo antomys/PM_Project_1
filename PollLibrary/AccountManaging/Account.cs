@@ -13,7 +13,7 @@ namespace PollLibrary.AccountManaging
     {
         private const string AccountBin = "Accounts.bin";
         
-        public Account(Guid id, string name, string password, Roles role)
+        public Account(Guid id, string name, string password, Role role)
         {
             Id = id;
             if (string.IsNullOrEmpty(name.Trim()))
@@ -29,7 +29,7 @@ namespace PollLibrary.AccountManaging
         [JsonPropertyName("password")]
         public string Password { get;}
         [JsonPropertyName("role")]
-        public Roles Role { get; }
+        public Role Role { get; }
 
         public void AddAccountToBin()
         {
@@ -42,17 +42,30 @@ namespace PollLibrary.AccountManaging
             if (File.ReadAllText(AccountBin).Length == 0)
             {
                 var list = new List<IAccount> {this};
+
+                if (!CheckAccountExists(list))
+                {
+                    throw new AlreadyExistsException(ToString());
+                }
+                
                 var json = JsonSerializer.Serialize(list,option);
                 File.WriteAllText(AccountBin, json);
             }
             else
             {
                 var data = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(AccountBin));
-                if (data!.Any(x=>x.Name.Equals(Name) && x.Password.Equals(Password)))
+                
+                //if (data!.Any(x=>x.Name.Equals(Name) && x.Password.Equals(Password)))
+                //{
+                //    throw new AlreadyExistsException(ToString());
+                //}
+
+                if (CheckAccountExists(data))
                 {
                     throw new AlreadyExistsException(ToString());
                 }
-                data.Add(this);
+                
+                data?.Add(this);
                 var json = JsonSerializer.Serialize(data,option);
                 File.WriteAllText(AccountBin,json);
             }
@@ -75,12 +88,17 @@ namespace PollLibrary.AccountManaging
         private static void CreateOrCheckFile()
         {
             if (File.Exists(AccountBin)) return;
-            Console.WriteLine("File Account.bin not found. Creating...");
+            //Console.WriteLine("File Account.bin not found. Creating...");
             using var fs = File.Create(AccountBin);
             fs.Close();
         }
 
-        public static List<Account> GetAccounts()
+        private bool CheckAccountExists(IEnumerable<IAccount> accounts)
+        {
+            return accounts.All(account => account.Name.ToLower() != Name.ToLower());
+        }
+
+        public static IEnumerable<Account> GetAccounts()
         {
             if (!File.Exists(AccountBin) || File.ReadAllText(AccountBin).Length==0) 
             {

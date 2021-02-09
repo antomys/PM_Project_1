@@ -15,7 +15,7 @@ namespace Participant
         private static void ChangeAccount()
         {
             var chosenAccount = Login();
-            if (chosenAccount.Role.Equals(Roles.Participant))
+            if (chosenAccount.Role.Equals(Role.Participant))
             {
                 ParticipantMenu(chosenAccount);
             }
@@ -33,7 +33,7 @@ namespace Participant
                 Console.WriteLine("1. Sign up");
                 Console.WriteLine("2. Log in");
                 Console.WriteLine("3. Exit");
-                Int32.TryParse(Console.ReadLine(), out var input);
+                int.TryParse(Console.ReadLine(), out var input);
                 switch (input)
                 {
                     case 1:
@@ -78,7 +78,7 @@ namespace Participant
                     case 1:
                         try
                         {
-                            newAccount = new Account(Guid.NewGuid(), name, password, Roles.Manager);
+                            newAccount = new Account(Guid.NewGuid(), name, password, Role.Manager);
                             newAccount.AddAccountToBin();
                             return newAccount;
                         }
@@ -90,7 +90,7 @@ namespace Participant
                     case 2:
                         try
                         {
-                            newAccount = new Account(Guid.NewGuid(), name, password, Roles.Participant);
+                            newAccount = new Account(Guid.NewGuid(), name, password, Role.Participant);
                             newAccount.AddAccountToBin();
                             return newAccount;
                         }
